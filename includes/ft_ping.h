@@ -17,7 +17,12 @@
 # define OPT_h	2
 
 typedef struct s_data {
-	int	opt;
+	int		opt;
+	char	*rhost;
+	int		ac;
+	char	**av;
 }								t_data;
+
+int	create_socket(t_data *data);
 
 #endif

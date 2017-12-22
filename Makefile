@@ -1,4 +1,5 @@
-SRC_NAME = main.c
+SRC_NAME = main.c \
+						network.c
 
 OBJ_PATH = ./obj/
 
