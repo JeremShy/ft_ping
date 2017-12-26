@@ -2,7 +2,7 @@
 
 void print_help(char *av)
 {
-	printf("usage: %s:\n\t\t[-h]: help\n\t\t[-v]: verbose\n", av);
+	printf("usage: %s:\n\t\t[-h]: help\n\t\t[-v]: verbose\n\t\tdestination\n", av);
 }
 
 int init_data(t_data *data, int ac, char **av)
@@ -40,7 +40,7 @@ int init_data(t_data *data, int ac, char **av)
 			rhost = av[i];
 		i++;
 	}
-	if (!rhost)
+	if (!rhost && !(data->opt & OPT_h))
 		return (0);
 	data->rhost = rhost;
 	return (1);
@@ -51,13 +51,19 @@ int main(int ac, char **av) {
 
 	if (ac == 1 || !init_data(&data, ac, av))
 	{
+		dprintf (2, "Error : %s: No destination.\n", av[0]);
 		print_help(av[0]);
 		return (1);
 	}
 	if (data.opt & OPT_h)
 	{
 		print_help(av[0]);
-		return (1);
+		return (0);
+	}
+	if (getuid() != 0)
+	{
+		dprintf(2, "Error: %s: You have to be root in order to use this command.\n", av[0]);
+		return (2);
 	}
 	printf("remote host : [%s]\n", data.rhost);
 	create_socket(&data);
