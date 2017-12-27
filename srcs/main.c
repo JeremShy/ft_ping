@@ -65,6 +65,7 @@ int main(int ac, char **av) {
 		dprintf(2, "Error: %s: You have to be root in order to use this command.\n", av[0]);
 		return (2);
 	}
-	printf("remote host : [%s]\n", data.rhost);
+	data.pid = getpid();
+	printf("pid : %d - remote host : [%s]\n", data.pid, data.rhost);
 	create_socket(&data);
 }
