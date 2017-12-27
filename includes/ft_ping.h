@@ -11,6 +11,7 @@
 # include <arpa/inet.h>
 # include <stdlib.h>
 # include <signal.h>
+# include <netinet/ip_icmp.h>
 
 # define NO_OPT	0
 # define OPT_v	1
