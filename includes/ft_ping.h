@@ -48,6 +48,7 @@
 typedef struct s_data {
 	int		opt;
 	char	*rhost;
+	char	rp[20];
 	int		ac;
 	char	**av;
 	pid_t	pid;

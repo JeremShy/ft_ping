@@ -106,5 +106,22 @@ int	init_socket(t_data *data)
 		dprintf(2, "getaddrinfo failed for rhost %s\n", data->rhost);
 		return (0);
 	}
+
+	if (data->res->ai_family == AF_INET)
+	{
+		if (inet_ntop(data->res->ai_family, &((struct sockaddr_in*)(data->res->ai_addr))->sin_addr, data->rp, sizeof(data->rp)) == 0)
+		{
+			dprintf(2, "inet_ntop failed.\n", data->rhost);
+			return (0);
+		}
+	}
+	else if (data->res->ai_family == AF_INET6)
+	{
+		if (inet_ntop(data->res->ai_family, &((struct sockaddr_in6*)(data->res->ai_addr))->sin6_addr, data->rp, sizeof(data->rp)) == 0)
+		{
+			dprintf(2, "inet_ntop failed.\n", data->rhost);
+			return (0);
+		}
+	}
 	return (1);
 }
