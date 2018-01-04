@@ -1,0 +1,3 @@
+Todo :
+
+	- Ne plus utiliser htons et ntohs (pas autorisees).

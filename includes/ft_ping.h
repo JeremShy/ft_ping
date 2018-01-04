@@ -59,7 +59,7 @@ typedef struct s_data {
 
 
 int	init_socket(t_data *data);
-void send_echo_request(t_data *data);
+int send_echo_request(t_data *data);
 void recv_echo_response(t_data *data);
 
 #endif

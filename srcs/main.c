@@ -70,9 +70,13 @@ int main(int ac, char **av) {
 	printf("pid : %d - remote host : [%s]\n", data.pid, data.rhost);
 	if (init_socket(&data) == 0)
 	{
-		printf ("error in init_socket.\n");
+		dprintf (2, "error in init_socket.\n");
 		return (0);
 	}
-	send_echo_request(&data);
+	if (send_echo_request(&data) == 0)
+	{
+		dprintf (2, "error in send_echo_request.\n");
+		return (0);
+	}
 	recv_echo_response(&data);
 }
