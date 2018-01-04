@@ -38,6 +38,10 @@
 	    } frag;                     /* path mtu discovery */
 	  } un;
 	};
+	struct iphdr
+	{
+		int ihl;
+	};
 # endif
 
 
@@ -47,10 +51,15 @@ typedef struct s_data {
 	int		ac;
 	char	**av;
 	pid_t	pid;
+	struct addrinfo *res;
+	int	sock;
+	int seq;
 }								t_data;
 
 
 
-int	create_socket(t_data *data);
+int	init_socket(t_data *data);
+void send_echo_request(t_data *data);
+void recv_echo_response(t_data *data);
 
 #endif

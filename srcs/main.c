@@ -66,6 +66,13 @@ int main(int ac, char **av) {
 		return (2);
 	}
 	data.pid = getpid();
+	data.seq = 1;
 	printf("pid : %d - remote host : [%s]\n", data.pid, data.rhost);
-	create_socket(&data);
+	if (init_socket(&data) == 0)
+	{
+		printf ("error in init_socket.\n");
+		return (0);
+	}
+	send_echo_request(&data);
+	recv_echo_response(&data);
 }
