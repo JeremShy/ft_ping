@@ -90,6 +90,7 @@ int send_echo_request(t_data *data)
 	icmp->code = 0;
 	icmp->un.echo.id = htons(data->pid);
 	icmp->un.echo.sequence = htons(data->seq);
+	data->seq++;
 	strcpy(msg, "coucou");
 	if (gettimeofday(tv, NULL) == -1)
 	{
@@ -104,13 +105,18 @@ int send_echo_request(t_data *data)
 
 int	init_socket(t_data *data)
 {
+	struct addrinfo hints;
+
+	ft_bzero(&hints, sizeof(struct addrinfo));
+	hints.ai_flags = AI_CANONNAME;
 	data->sock = socket(AF_INET, SOCK_RAW, 1); // proto ICMP : 1
 
-	if ((getaddrinfo(data->rhost, NULL, NULL, &(data->res)) != 0) || !(data->res))
+	if ((getaddrinfo(data->rhost, NULL, &hints, &(data->res)) != 0) || !(data->res))
 	{
 		dprintf(2, "getaddrinfo failed for rhost %s\n", data->rhost);
 		return (0);
 	}
+	printf("cannon : %s\n", data->res->ai_canonname);
 
 	if (data->res->ai_family == AF_INET)
 	{
@@ -128,5 +134,6 @@ int	init_socket(t_data *data)
 			return (0);
 		}
 	}
+	printf("rp : %s\n", data->rp);
 	return (1);
 }
