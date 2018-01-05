@@ -23,11 +23,12 @@ u_int16_t checksum(void *dgram, size_t size)
 	return (~sum);
 }
 
-void analyse_icmp_response(t_data *data, char buffer[200], int r)
+void analyse_icmp_response(t_data *data, char buffer[200], int r, struct timeval recvtime)
 {
 	struct icmphdr *icmp;
 	struct iphdr *ip;
 	struct timeval *tv;
+	float diff;
 	char *msg;
 
 	ip = (struct iphdr*)buffer;
@@ -41,13 +42,15 @@ void analyse_icmp_response(t_data *data, char buffer[200], int r)
 	printf ("icmp seq : %d\n", ntohs(icmp->un.echo.sequence));
 	printf ("icmp message : [%s]\n", msg);
 
-	printf ("%ld - %ld\n", tv->tv_sec, tv->tv_usec);
+	diff = ((recvtime.tv_sec * 10000  + recvtime.tv_usec / 100) - (tv->tv_sec * 10000  + tv->tv_usec / 100)) / 10.0f;
+	printf ("diff : %.1fms\n", diff);
 }
 
 void recv_echo_response(t_data *data)
 {
 	struct msghdr msghdr;
 	char buffer[200];
+	struct timeval recvtime;
 	struct iovec iov;
 
 	ft_bzero(buffer, sizeof(buffer));
@@ -62,12 +65,14 @@ void recv_echo_response(t_data *data)
 	msghdr.msg_iovlen = 1;
 
 	int r = recvmsg(data->sock, &msghdr, 0);
+	gettimeofday(&recvtime, NULL);
+
 	printf("r : %d\n", r);
 	buffer[r] = 0;
 
 	if (r == -1)
 		dprintf(2, "Error !\n");
-	analyse_icmp_response(data, buffer, r);
+	analyse_icmp_response(data, buffer, r, recvtime);
 }
 
 int send_echo_request(t_data *data)

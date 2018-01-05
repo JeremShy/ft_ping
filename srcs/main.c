@@ -1,5 +1,7 @@
 #include <ft_ping.h>
 
+t_data g_data = {0};
+
 void print_help(char *av)
 {
 	printf("usage: %s:\n\t\t[-h]: help\n\t\t[-v]: verbose\n\t\tdestination\n", av);
@@ -46,16 +48,31 @@ int init_data(t_data *data, int ac, char **av)
 	return (1);
 }
 
-int main(int ac, char **av) {
-	t_data data;
+void do_send_echo_request(t_data *data)
+{
+	if (send_echo_request(data) == 0)
+	{
+		dprintf (2, "Error while trying to send echo request.\n");
+		exit(EXIT_FAILURE);
+	}
+}
 
-	if (ac == 1 || !init_data(&data, ac, av))
+void sig_alarm(int sig)
+{
+	(void)sig;
+	do_send_echo_request(&g_data);
+	alarm(1);
+}
+
+
+int main(int ac, char **av) {
+	if (ac == 1 || !init_data(&g_data, ac, av))
 	{
 		dprintf (2, "Error : %s: No destination.\n", av[0]);
 		print_help(av[0]);
 		return (1);
 	}
-	if (data.opt & OPT_h)
+	if (g_data.opt & OPT_h)
 	{
 		print_help(av[0]);
 		return (0);
@@ -65,18 +82,20 @@ int main(int ac, char **av) {
 		dprintf(2, "Error: %s: You have to be root in order to use this command.\n", av[0]);
 		return (2);
 	}
-	data.pid = getpid();
-	data.seq = 1;
-	printf("pid : %d - remote host : [%s]\n", data.pid, data.rhost);
-	if (init_socket(&data) == 0)
+	g_data.pid = getpid();
+	g_data.seq = 1;
+	printf("pid : %d - remote host : [%s]\n", g_data.pid, g_data.rhost);
+	if (init_socket(&g_data) == 0)
 	{
 		dprintf (2, "error in init_socket.\n");
 		return (0);
 	}
-	if (send_echo_request(&data) == 0)
+	signal(SIGALRM, sig_alarm);
+	do_send_echo_request(&g_data);
+	alarm(1);
+
+	while (1)
 	{
-		dprintf (2, "error in send_echo_request.\n");
-		return (0);
+		recv_echo_response(&g_data);
 	}
-	recv_echo_response(&data);
 }

@@ -57,7 +57,7 @@ typedef struct s_data {
 	int seq;
 }								t_data;
 
-
+extern t_data g_data;
 
 int	init_socket(t_data *data);
 int send_echo_request(t_data *data);
