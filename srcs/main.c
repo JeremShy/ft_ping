@@ -72,14 +72,13 @@ void sig_int(int sig)
 	(void)sig;
 	t_data *data;
 	struct timeval	stop_time;
-	int diff;
+	long long diff;
 
 	data = &g_data;
-
 	gettimeofday(&stop_time, NULL);
 	diff = ((stop_time.tv_sec * 1000  + stop_time.tv_usec / 1000) - (data->start_time.tv_sec * 1000  + data->start_time.tv_usec / 1000));
 	printf("\n--- %s ping statistics ---\n", data->res->ai_canonname);
-	printf("%d packets transmitted, %d received, %d packet loss, time %dms\n", data->ntransmitted, data->nreceived, (int)(100 - ((float)data->nreceived / data->ntransmitted) * 100), diff);
+	printf("%d packets transmitted, %d received, %d%% packet loss, time %lldms\n", data->ntransmitted, data->nreceived, (int)(100 - ((float)data->nreceived / data->ntransmitted) * 100), diff);
 	print_list(data->lst);
 	exit(EXIT_SUCCESS);
 }
