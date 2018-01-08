@@ -23,27 +23,41 @@ u_int16_t checksum(void *dgram, size_t size)
 	return (~sum);
 }
 
-void analyse_icmp_response(t_data *data, char buffer[200], int r, struct timeval recvtime)
+void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvtime)
 {
 	struct icmphdr *icmp;
 	struct iphdr *ip;
 	struct timeval *tv;
 	float diff;
 	char *msg;
+	u_int16_t check;
 
 	ip = (struct iphdr*)buffer;
 	icmp = (void*)buffer + ip->ihl * 4;
 	tv = (void*)buffer + ip->ihl * 4 + sizeof(struct icmphdr);
 	msg = (void*)buffer + ip->ihl * 4 + sizeof(struct icmphdr) + sizeof(struct timeval);
 
-	printf ("icmp type : %d\n", icmp->type);
-	printf ("icmp code : %d\n", icmp->code);
-	printf ("icmp id : %d\n", ntohs(icmp->un.echo.id));
+	if (ip->protocol != 1)
+		return ;
+	if (icmp->type != 0 || icmp->code != 0)
+		return ;
+	if (ntohs(icmp->un.echo.id) != data->pid)
+		return ;
+	if (!ft_strequ(msg, "coucou"))
+		return ;
+
+	check = icmp->checksum;
+	icmp->checksum = 0;
+	if (checksum(icmp, 64) != check)
+		return ;
+
 	printf ("icmp seq : %d\n", ntohs(icmp->un.echo.sequence));
-	printf ("icmp message : [%s]\n", msg);
 
 	diff = ((recvtime.tv_sec * 10000  + recvtime.tv_usec / 100) - (tv->tv_sec * 10000  + tv->tv_usec / 100)) / 10.0f;
 	printf ("diff : %.1fms\n", diff);
+
+	data->lst = add_pckt(data->lst, create_pckt(ntohs(icmp->un.echo.sequence), diff));
+	data->nreceived++;
 }
 
 void recv_echo_response(t_data *data)
@@ -70,9 +84,9 @@ void recv_echo_response(t_data *data)
 	printf("r : %d\n", r);
 	buffer[r] = 0;
 
-	if (r == -1)
+	if (r != 64 + sizeof(struct iphdr))
 		dprintf(2, "Error !\n");
-	analyse_icmp_response(data, buffer, r, recvtime);
+	analyse_icmp_response(data, buffer, recvtime);
 }
 
 int send_echo_request(t_data *data)
@@ -99,7 +113,7 @@ int send_echo_request(t_data *data)
 	}
 	icmp->checksum = checksum(dgram, sizeof(dgram));
 	sendto(data->sock, dgram, sizeof(dgram), 0, data->res->ai_addr, data->res->ai_addrlen);
-	printf ("%ld - %ld\n", tv->tv_sec, tv->tv_usec);
+	data->ntransmitted++;
 	return (1);
 }
 
@@ -122,7 +136,7 @@ int	init_socket(t_data *data)
 	{
 		if (inet_ntop(data->res->ai_family, &((struct sockaddr_in*)(data->res->ai_addr))->sin_addr, data->rp, sizeof(data->rp)) == 0)
 		{
-			dprintf(2, "inet_ntop failed.\n", data->rhost);
+			dprintf(2, "inet_ntop failed.\n");
 			return (0);
 		}
 	}
@@ -130,7 +144,7 @@ int	init_socket(t_data *data)
 	{
 		if (inet_ntop(data->res->ai_family, &((struct sockaddr_in6*)(data->res->ai_addr))->sin6_addr, data->rp, sizeof(data->rp)) == 0)
 		{
-			dprintf(2, "inet_ntop failed.\n", data->rhost);
+			dprintf(2, "inet_ntop failed.\n");
 			return (0);
 		}
 	}

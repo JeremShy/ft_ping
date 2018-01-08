@@ -39,13 +39,38 @@
 	  } un;
 	};
 	struct iphdr
-	{
-		int ihl;
-	};
+	  {
+	#if __BYTE_ORDER == __LITTLE_ENDIAN
+	    unsigned int ihl:4;
+	    unsigned int version:4;
+	#elif __BYTE_ORDER == __BIG_ENDIAN
+	    unsigned int version:4;
+	    unsigned int ihl:4;
+	#else
+	# error "Please fix <bits/endian.h>"
+	#endif
+	    u_int8_t tos;
+	    u_int16_t tot_len;
+	    u_int16_t id;
+	    u_int16_t frag_off;
+	    u_int8_t ttl;
+	    u_int8_t protocol;
+	    u_int16_t check;
+	    u_int32_t saddr;
+	    u_int32_t daddr;
+	    /*The options start here. */
+	  };
 # endif
+
+typedef struct s_pckt {
+	float 		time;
+	int				seq;
+	struct s_pckt	*next;
+}				t_pckt;
 
 
 typedef struct s_data {
+	struct timeval start_time;
 	int		opt;
 	char	*rhost;
 	char	rp[20];
@@ -55,12 +80,21 @@ typedef struct s_data {
 	struct addrinfo *res;
 	int	sock;
 	int seq;
+	t_pckt *lst;
+	int	ntransmitted;
+	int	nreceived;
 }								t_data;
+
 
 extern t_data g_data;
 
 int	init_socket(t_data *data);
 int send_echo_request(t_data *data);
 void recv_echo_response(t_data *data);
+
+t_pckt *create_pckt(int seq, float time);
+t_pckt	*add_pckt(t_pckt *lst, t_pckt *pckt);
+void	print_list(t_pckt	*lst);
+
 
 #endif

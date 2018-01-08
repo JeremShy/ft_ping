@@ -1,4 +1,3 @@
 Todo :
 
 	- Ne plus utiliser htons et ntohs (pas autorisees).
-	- Verifier le checksum, l'adresse source, la sequence et le message des pings recus

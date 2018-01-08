@@ -15,6 +15,9 @@ int init_data(t_data *data, int ac, char **av)
 	int	options_ended;
 
 	rhost = NULL;
+	data->lst = NULL;
+	data->ntransmitted = 0;
+	data->nreceived = 0;
 	data->opt = 0;
 	options_ended = 0;
 	i = 1;
@@ -64,6 +67,23 @@ void sig_alarm(int sig)
 	alarm(1);
 }
 
+void sig_int(int sig)
+{
+	(void)sig;
+	t_data *data;
+	struct timeval	stop_time;
+	int diff;
+
+	data = &g_data;
+
+	gettimeofday(&stop_time, NULL);
+	diff = ((stop_time.tv_sec * 1000  + stop_time.tv_usec / 1000) - (data->start_time.tv_sec * 1000  + data->start_time.tv_usec / 1000));
+	printf("\n--- %s ping statistics ---\n", data->res->ai_canonname);
+	printf("%d packets transmitted, %d received, %d packet loss, time %dms\n", data->ntransmitted, data->nreceived, (int)(100 - ((float)data->nreceived / data->ntransmitted) * 100), diff);
+	print_list(data->lst);
+	exit(EXIT_SUCCESS);
+}
+
 
 int main(int ac, char **av) {
 	if (ac == 1 || !init_data(&g_data, ac, av))
@@ -91,6 +111,8 @@ int main(int ac, char **av) {
 		return (0);
 	}
 	signal(SIGALRM, sig_alarm);
+	signal(SIGINT, sig_int);
+	gettimeofday(&(g_data.start_time), NULL);
 	do_send_echo_request(&g_data);
 	alarm(1);
 
