@@ -13,6 +13,7 @@
 # include <signal.h>
 # include <netinet/ip_icmp.h>
 
+
 # define NO_OPT	0
 # define OPT_v	1
 # define OPT_h	2
@@ -95,6 +96,12 @@ void recv_echo_response(t_data *data);
 t_pckt *create_pckt(int seq, float time);
 t_pckt	*add_pckt(t_pckt *lst, t_pckt *pckt);
 void	print_list(t_pckt	*lst);
+void print_infos(t_data *data, struct timeval stop_time);
+
+float calc_min(t_pckt *lst);
+float calc_max(t_pckt *lst);
+float calc_avg(t_pckt *lst);
+float calc_mdev(t_pckt *lst);
 
 
 #endif

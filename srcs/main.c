@@ -72,14 +72,12 @@ void sig_int(int sig)
 	(void)sig;
 	t_data *data;
 	struct timeval	stop_time;
-	long long diff;
 
-	data = &g_data;
+
 	gettimeofday(&stop_time, NULL);
-	diff = ((stop_time.tv_sec * 1000  + stop_time.tv_usec / 1000) - (data->start_time.tv_sec * 1000  + data->start_time.tv_usec / 1000));
-	printf("\n--- %s ping statistics ---\n", data->res->ai_canonname);
-	printf("%d packets transmitted, %d received, %d%% packet loss, time %lldms\n", data->ntransmitted, data->nreceived, (int)(100 - ((float)data->nreceived / data->ntransmitted) * 100), diff);
-	print_list(data->lst);
+	data = &g_data;
+	if (data->lst)
+		print_infos(data, stop_time);
 	exit(EXIT_SUCCESS);
 }
 
@@ -103,12 +101,12 @@ int main(int ac, char **av) {
 	}
 	g_data.pid = getpid();
 	g_data.seq = 1;
-	printf("pid : %d - remote host : [%s]\n", g_data.pid, g_data.rhost);
 	if (init_socket(&g_data) == 0)
 	{
 		dprintf (2, "error in init_socket.\n");
 		return (0);
 	}
+	printf("PING %s (%s) %d(%zu) bytes of data.\n", g_data.res->ai_canonname, g_data.rp, 64 - 8, 64 + sizeof(struct iphdr));
 	signal(SIGALRM, sig_alarm);
 	signal(SIGINT, sig_int);
 	gettimeofday(&(g_data.start_time), NULL);

@@ -30,3 +30,13 @@ void	print_list(t_pckt	*lst)
 	}
 	printf("\n");
 }
+
+void print_infos(t_data *data, struct timeval stop_time)
+{
+	long long diff;
+
+	diff = ((stop_time.tv_sec * 1000  + stop_time.tv_usec / 1000) - (data->start_time.tv_sec * 1000  + data->start_time.tv_usec / 1000));
+	printf("\n--- %s ping statistics ---\n", data->res->ai_canonname);
+	printf("%d packets transmitted, %d received, %d%% packet loss, time %lldms\n", data->ntransmitted, data->nreceived, (int)(100 - ((float)data->nreceived / data->ntransmitted) * 100), diff);
+	printf("rtt min/avg/max/mdev = %.3f/%.3f/%.3f/%.3f ms\n", calc_min(data->lst), calc_avg(data->lst), calc_max(data->lst), calc_mdev(data->lst));
+}

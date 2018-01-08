@@ -31,6 +31,7 @@ void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvti
 	float diff;
 	char *msg;
 	u_int16_t check;
+	char dst[40];
 
 	ip = (struct iphdr*)buffer;
 	icmp = (void*)buffer + ip->ihl * 4;
@@ -51,10 +52,27 @@ void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvti
 	if (checksum(icmp, 64) != check)
 		return ;
 
-	printf ("icmp seq : %d\n", ntohs(icmp->un.echo.sequence));
+	if (ip->version == 4)
+	{
+		struct in_addr *addr;
 
-	diff = ((recvtime.tv_sec * 10000  + recvtime.tv_usec / 100) - (tv->tv_sec * 10000  + tv->tv_usec / 100)) / 10.0f;
-	printf ("diff : %.1fms\n", diff);
+		addr = (void*)&(ip->saddr);
+		inet_ntop(AF_INET, addr, dst, sizeof(dst));
+	}
+	else if (data->res->ai_family == AF_INET6)
+	{
+		struct in_addr6 *addr;
+
+		addr = (void*)&(ip->saddr);
+		inet_ntop(AF_INET6, addr, dst, sizeof(dst));
+	}
+
+
+	// printf ("icmp seq : %d\n", ntohs(icmp->un.echo.sequence));
+
+	diff = ((recvtime.tv_sec * 1000  + recvtime.tv_usec / 1000.0) - (tv->tv_sec * 1000  + tv->tv_usec / 1000.0));
+	// printf ("diff : %.fms\n", diff);
+	printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms\n", 64, dst, ntohs(icmp->un.echo.sequence), ip->ttl, diff);
 
 	data->lst = add_pckt(data->lst, create_pckt(ntohs(icmp->un.echo.sequence), diff));
 	data->nreceived++;
@@ -81,7 +99,6 @@ void recv_echo_response(t_data *data)
 	int r = recvmsg(data->sock, &msghdr, 0);
 	gettimeofday(&recvtime, NULL);
 
-	printf("r : %d\n", r);
 	buffer[r] = 0;
 
 	if (r != 64 + sizeof(struct iphdr))
@@ -130,7 +147,6 @@ int	init_socket(t_data *data)
 		dprintf(2, "getaddrinfo failed for rhost %s\n", data->rhost);
 		return (0);
 	}
-	printf("cannon : %s\n", data->res->ai_canonname);
 
 	if (data->res->ai_family == AF_INET)
 	{
@@ -148,6 +164,5 @@ int	init_socket(t_data *data)
 			return (0);
 		}
 	}
-	printf("rp : %s\n", data->rp);
 	return (1);
 }
