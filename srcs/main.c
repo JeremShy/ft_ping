@@ -76,8 +76,7 @@ void sig_int(int sig)
 
 	gettimeofday(&stop_time, NULL);
 	data = &g_data;
-	if (data->lst)
-		print_infos(data, stop_time);
+	print_infos(data, stop_time);
 	exit(EXIT_SUCCESS);
 }
 

@@ -23,7 +23,7 @@ u_int16_t checksum(void *dgram, size_t size)
 	return (~sum);
 }
 
-void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvtime)
+void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvtime, int r)
 {
 	struct icmphdr *icmp;
 	struct iphdr *ip;
@@ -40,16 +40,14 @@ void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvti
 
 	if (ip->protocol != 1)
 		return ;
-	if (icmp->type != 0 || icmp->code != 0)
+	if (ntohs(icmp->un.echo.id) != data->pid && ntohs(icmp->un.echo.id) != 0)
 		return ;
-	if (ntohs(icmp->un.echo.id) != data->pid)
-		return ;
-	if (!ft_strequ(msg, "coucou"))
+	if (!ft_strequ(msg, "coucou") && ntohs(icmp->un.echo.id) != 0)
 		return ;
 
 	check = icmp->checksum;
 	icmp->checksum = 0;
-	if (checksum(icmp, 64) != check)
+	if (checksum(icmp, r - sizeof(struct iphdr)) != check)
 		return ;
 
 	if (ip->version == 4)
@@ -67,15 +65,18 @@ void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvti
 		inet_ntop(AF_INET6, addr, dst, sizeof(dst));
 	}
 
-
-	// printf ("icmp seq : %d\n", ntohs(icmp->un.echo.sequence));
-
 	diff = ((recvtime.tv_sec * 1000  + recvtime.tv_usec / 1000.0) - (tv->tv_sec * 1000  + tv->tv_usec / 1000.0));
-	// printf ("diff : %.fms\n", diff);
-	printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms\n", 64, dst, ntohs(icmp->un.echo.sequence), ip->ttl, diff);
-
-	data->lst = add_pckt(data->lst, create_pckt(ntohs(icmp->un.echo.sequence), diff));
-	data->nreceived++;
+	if (icmp->code != 0 || icmp->type != 0 || r != 64 + sizeof(struct iphdr))
+	{
+		if (data->opt & OPT_v)
+			printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms : type %d, code : %d\n", 64, dst, ntohs(icmp->un.echo.sequence), ip->ttl, diff, icmp->type, icmp->code);
+	}
+	else
+	{
+		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms\n", 64, dst, ntohs(icmp->un.echo.sequence), ip->ttl, diff);
+		data->lst = add_pckt(data->lst, create_pckt(ntohs(icmp->un.echo.sequence), diff));
+		data->nreceived++;
+	}
 }
 
 void recv_echo_response(t_data *data)
@@ -103,7 +104,7 @@ void recv_echo_response(t_data *data)
 
 	if (r != 64 + sizeof(struct iphdr))
 		dprintf(2, "Error !\n");
-	analyse_icmp_response(data, buffer, recvtime);
+	analyse_icmp_response(data, buffer, recvtime, r);
 }
 
 int send_echo_request(t_data *data)
@@ -164,5 +165,7 @@ int	init_socket(t_data *data)
 			return (0);
 		}
 	}
+	int ttl = 1;
+	setsockopt(data->sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
 	return (1);
 }
