@@ -56,5 +56,8 @@ void print_memory(char *start, size_t size)
 
 void	print_icmp_hdr(struct icmphdr *hdr)
 {
-	
+	printf("type : %d\n", hdr->type);
+	printf("code : %d\n", hdr->code);
+	printf("id : %d\n", ntohs(hdr->un.echo.id));
+	printf("sequence : %d\n", ntohs(hdr->un.echo.sequence));
 }

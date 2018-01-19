@@ -23,7 +23,7 @@ u_int16_t checksum(void *dgram, size_t size)
 	return (~sum);
 }
 
-void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvtime, int r, int exupected_size)
+int analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvtime, int r, int expected_size)
 {
 	struct icmphdr *icmp;
 	struct iphdr *ip;
@@ -38,17 +38,18 @@ void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvti
 	tv = (void*)buffer + ip->ihl * 4 + sizeof(struct icmphdr);
 	msg = (void*)buffer + ip->ihl * 4 + sizeof(struct icmphdr) + sizeof(struct timeval);
 
+	print_icmp_hdr(icmp);
 	if (ip->protocol != 1)
-		return ;
-	if (ntohs(icmp->un.echo.id) != data->pid && ntohs(icmp->un.echo.id) != 0)
-		return ;
-	if (!ft_strequ(msg, "coucou") && ntohs(icmp->un.echo.id) != 0)
-		return ;
+		return (0);
+	if (r != expected_size && ntohs(icmp->un.echo.id) != data->pid && (icmp->type == 0))
+		return (-1);
+	if (r != expected_size && !ft_strequ(msg, "coucou") && (icmp->type == 0))
+		return (-1);
 
 	check = icmp->checksum;
 	icmp->checksum = 0;
-	if (checksum(icmp, r - sizeof(struct iphdr)) != check)
-		return ;
+	if (r != expected_size && checksum(icmp, r - sizeof(struct iphdr)) != check)
+		return (-1);
 
 	if (ip->version == 4)
 	{
@@ -64,6 +65,13 @@ void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvti
 		addr = (void*)&(ip->saddr);
 		inet_ntop(AF_INET6, addr, dst, sizeof(dst));
 	}
+	return (1);
+
+	/*
+		TODO :	 1 = Ok, print message
+						 0 = Discard message
+						-1 = Show error message
+	*/
 
 	diff = ((recvtime.tv_sec * 1000  + recvtime.tv_usec / 1000.0) - (tv->tv_sec * 1000  + tv->tv_usec / 1000.0));
 	if (icmp->code != 0 || icmp->type != 0 || r != 64 + sizeof(struct iphdr))
