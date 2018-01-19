@@ -23,7 +23,7 @@ u_int16_t checksum(void *dgram, size_t size)
 	return (~sum);
 }
 
-void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvtime, int r)
+void analyse_icmp_response(t_data *data, char buffer[200], struct timeval recvtime, int r, int exupected_size)
 {
 	struct icmphdr *icmp;
 	struct iphdr *ip;
@@ -103,8 +103,9 @@ void recv_echo_response(t_data *data)
 	buffer[r] = 0;
 
 	if (r != 64 + sizeof(struct iphdr))
-		dprintf(2, "Error !\n");
-	analyse_icmp_response(data, buffer, recvtime, r);
+		dprintf(2, "Error ! r = %d, struct iphdr = %lu, struct icmphdr = %lu\n", r, sizeof(struct iphdr), sizeof(struct icmphdr));
+	print_memory(buffer, r);
+	analyse_icmp_response(data, buffer, recvtime, r, 64 + sizeof(struct iphdr));
 }
 
 int send_echo_request(t_data *data)
@@ -117,7 +118,7 @@ int send_echo_request(t_data *data)
 	bzero(dgram, sizeof(dgram));
 	icmp = (struct icmphdr *)dgram;
 	msg = dgram + sizeof(struct icmphdr) + sizeof(struct timeval);
-	tv = (struct timeval*)(dgram + + sizeof(struct icmphdr));
+	tv = (struct timeval*)(dgram + sizeof(struct icmphdr));
 	icmp->type = ICMP_ECHO;
 	icmp->code = 0;
 	icmp->un.echo.id = htons(data->pid);

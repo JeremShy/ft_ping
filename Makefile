@@ -1,7 +1,8 @@
 SRC_NAME = main.c \
 						network.c \
 						linked_list.c \
-						maths.c
+						maths.c \
+						debug.c
 
 OBJ_PATH = ./obj/
 

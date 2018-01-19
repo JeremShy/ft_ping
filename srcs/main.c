@@ -113,7 +113,5 @@ int main(int ac, char **av) {
 	alarm(1);
 
 	while (1)
-	{
 		recv_echo_response(&g_data);
-	}
 }

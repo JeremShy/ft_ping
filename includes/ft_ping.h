@@ -102,6 +102,7 @@ float calc_min(t_pckt *lst);
 float calc_max(t_pckt *lst);
 float calc_avg(t_pckt *lst);
 float calc_mdev(t_pckt *lst);
+void	print_memory(char *start, size_t size);
 
 
 #endif
