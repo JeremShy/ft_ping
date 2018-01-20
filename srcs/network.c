@@ -67,7 +67,6 @@ void recv_echo_response(t_data *data)
 	ft_bzero(buffer, sizeof(buffer));
 	ft_bzero(&msghdr, sizeof(msghdr));
 
-	msghdr.msg_name = data->res->ai_addr;
 	msghdr.msg_namelen = data->res->ai_addrlen;
 
 	iov.iov_base = buffer;
@@ -77,20 +76,13 @@ void recv_echo_response(t_data *data)
 
 	int r = recvmsg(data->sock, &msghdr, 0);
 	gettimeofday(&recvtime, NULL);
-
 	buffer[r] = 0;
 
-	// if (r != 64 + sizeof(struct iphdr))
-	// 	dprintf(2, "Error ! r = %d, struct iphdr = %lu, struct icmphdr = %lu\n", r, sizeof(struct iphdr), sizeof(struct icmphdr));
-	// print_memory(buffer, r);
 	analysis = analyse_icmp_response(data, buffer, r, 64 + sizeof(struct iphdr));
-	printf("analysis = %d\n", analysis);
 	if (analysis == 1)
-		print_ok_msg(data, buffer, recvtime, r);
+		print_ok_msg(data, buffer, recvtime);
 	else if (analysis == -1)
-		print_error_message(data, buffer, r);
-	else
-		printf("this packet must be discarded.\n");
+		print_error_message(data, buffer);
 }
 
 int send_echo_request(t_data *data)
@@ -131,7 +123,7 @@ int	init_socket(t_data *data)
 
 	if ((getaddrinfo(data->rhost, NULL, &hints, &(data->res)) != 0) || !(data->res))
 	{
-		dprintf(2, "getaddrinfo failed for rhost %s\n", data->rhost);
+		dprintf(2, "%s: %s: Name not known\n", data->av[0], data->rhost);
 		return (0);
 	}
 
@@ -151,7 +143,7 @@ int	init_socket(t_data *data)
 			return (0);
 		}
 	}
-	int ttl = 1;
-	setsockopt(data->sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
+	setsockopt(data->sock, IPPROTO_IP, IP_TTL, &data->ttl, sizeof(data->ttl));
 	return (1);
+
 }

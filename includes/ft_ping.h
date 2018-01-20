@@ -84,6 +84,7 @@ typedef struct s_data {
 	t_pckt *lst;
 	int	ntransmitted;
 	int	nreceived;
+	int	ttl;
 }								t_data;
 
 
@@ -106,8 +107,8 @@ float calc_mdev(t_pckt *lst);
 void	print_memory(char *start, size_t size);
 void	print_icmp_hdr(struct icmphdr *hdr);
 
-void print_ok_msg(t_data *data, char buffer[200], struct timeval recvtime, int r);
-void print_error_message(t_data *data, char buffer[200], int r);
+void print_ok_msg(t_data *data, char buffer[200], struct timeval recvtime);
+void print_error_message(t_data *data, char buffer[200]);
 
 
 #endif

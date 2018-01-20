@@ -4,7 +4,7 @@ t_data g_data = {0};
 
 void print_help(char *av)
 {
-	printf("usage: %s:\n\t\t[-h]: help\n\t\t[-v]: verbose\n\t\tdestination\n", av);
+	printf("usage: %s:\n\t\t[-h]: help\n\t\t[-v]: verbose\n\t\t[-t]: Time to live\n\t\tdestination\n", av);
 }
 
 int init_data(t_data *data, int ac, char **av)
@@ -13,12 +13,15 @@ int init_data(t_data *data, int ac, char **av)
 	int	j;
 	char *rhost;
 	int	options_ended;
+	char	*s;
 
 	rhost = NULL;
 	data->lst = NULL;
 	data->ntransmitted = 0;
 	data->nreceived = 0;
 	data->opt = 0;
+	data->av = av;
+	data->ttl = 60;
 	options_ended = 0;
 	i = 1;
 	while (i < ac)
@@ -36,6 +39,25 @@ int init_data(t_data *data, int ac, char **av)
 					data->opt |= OPT_h;
 				else if (av[i][j] == 'v')
 					data->opt |= OPT_v;
+				else if (av[i][j] == 't') // L'enfer sur terre, mais pas de norme et pas envie de mieux faire.
+				{
+					if (!av[i + 1])
+						return (0);
+					if (av[i][j + 1] != '\0')
+						s = av[i] + j + 1;
+					else
+					{
+						s = av[i + 1];
+						i++;
+					}
+					data->ttl = ft_atoi(s);
+					if (data->ttl <= 0 || data->ttl > 255)
+					{
+						dprintf(2, "%s: ttl %d out of range", av[0], data->ttl);
+						return (-1);
+					}
+					break;
+				}
 				else
 					return (0);
 				j++;
@@ -82,10 +104,12 @@ void sig_int(int sig)
 
 
 int main(int ac, char **av) {
-	if (ac == 1 || !init_data(&g_data, ac, av))
+	int	help;
+
+	if (ac == 1 || (help = init_data(&g_data, ac, av)) != 1)
 	{
-		dprintf (2, "Error : %s: No destination.\n", av[0]);
-		print_help(av[0]);
+		if (help == 0)
+			print_help(av[0]);
 		return (1);
 	}
 	if (g_data.opt & OPT_h)
@@ -101,10 +125,7 @@ int main(int ac, char **av) {
 	g_data.pid = getpid();
 	g_data.seq = 1;
 	if (init_socket(&g_data) == 0)
-	{
-		dprintf (2, "error in init_socket.\n");
 		return (0);
-	}
 	printf("PING %s (%s) %d(%zu) bytes of data.\n", g_data.res->ai_canonname, g_data.rp, 64 - 8, 64 + sizeof(struct iphdr));
 	signal(SIGALRM, sig_alarm);
 	signal(SIGINT, sig_int);

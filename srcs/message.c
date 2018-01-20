@@ -1,6 +1,6 @@
 #include <ft_ping.h>
 
-void print_ok_msg(t_data *data, char buffer[200], struct timeval recvtime, int r)
+void print_ok_msg(t_data *data, char buffer[200], struct timeval recvtime)
 {
 	float	diff;
 	struct icmphdr *icmp;
@@ -11,8 +11,6 @@ void print_ok_msg(t_data *data, char buffer[200], struct timeval recvtime, int r
 	ip = (struct iphdr*)buffer;
 	icmp = (void*)buffer + ip->ihl * 4;
 	tv = (void*)buffer + ip->ihl * 4 + sizeof(struct icmphdr);
-
-	printf("r1 = %d, ihl = %d\n", r, ip->ihl * 4);
 
 	if (ip->version == 4)
 	{
@@ -34,14 +32,27 @@ void print_ok_msg(t_data *data, char buffer[200], struct timeval recvtime, int r
 	data->nreceived++;
 }
 
-void print_error_message(t_data *data, char buffer[200], int r)
+void print_error_message(t_data *data, char buffer[200])
 {
 	struct icmphdr *icmp;
-	struct iphdr *ip1;
-	struct iphdr *ip2;
+	struct iphdr *ip;
+	char dst[40];
 
-	ip1 = (struct iphdr*)buffer;
-	icmp = (void*)buffer + ip1->ihl * 4;
-	ip2 = (void*)buffer + ip1->ihl * 4 + sizeof(struct iphdr);
-	printf("r2 = %d - ihl = %d\n", r, ip1->ihl * 4);
+	ip = (struct iphdr*)buffer;
+	icmp = (void*)buffer + ip->ihl * 4;
+	if (ip->version == 4)
+	{
+		struct in_addr *addr;
+
+		addr = (void*)&(ip->saddr);
+		inet_ntop(AF_INET, addr, dst, sizeof(dst));
+	}
+	else if (data->res->ai_family == AF_INET6)
+	{
+		struct in_addr6 *addr;
+
+		addr = (void*)&(ip->saddr);
+		inet_ntop(AF_INET6, addr, dst, sizeof(dst));
+	}
+	printf("%d bytes from %s: type = %d, code = %d\n", 64, dst, icmp->type, icmp->code);
 }

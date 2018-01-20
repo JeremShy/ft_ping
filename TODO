@@ -1,5 +1,4 @@
 Todo :
 
 	- Ne plus utiliser htons et ntohs (pas autorisees).
-	- Option -v /// CTOUKASSE
 	- Gerer le SIGQUIT
