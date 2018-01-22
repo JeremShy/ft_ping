@@ -103,6 +103,10 @@ float calc_min(t_pckt *lst);
 float calc_max(t_pckt *lst);
 float calc_avg(t_pckt *lst);
 float calc_mdev(t_pckt *lst);
+uint16_t invert_s_byte_order(uint16_t nbr);
+uint16_t ft_htons(uint16_t hostshort);
+uint16_t ft_ntohs(uint16_t netshort);
+
 
 void	print_memory(char *start, size_t size);
 void	print_icmp_hdr(struct icmphdr *hdr);

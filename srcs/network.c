@@ -24,13 +24,6 @@ u_int16_t checksum(void *dgram, size_t size)
 }
 
 
-// if (icmp->code != 0 || icmp->type != 0 || r != 64 + sizeof(struct iphdr))
-// {
-// 	if (data->opt & OPT_v)
-// 		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms : type %d, code : %d\n", 64, dst, ntohs(icmp->un.echo.sequence), ip->ttl, diff, icmp->type, icmp->code);
-// }
-
-
 int analyse_icmp_response(t_data *data, char buffer[200], int r, int expected_size)
 {
 	struct icmphdr *icmp;
@@ -44,7 +37,7 @@ int analyse_icmp_response(t_data *data, char buffer[200], int r, int expected_si
 
 	if (ip->protocol != 1)
 		return (0);
-	if (r != expected_size && ntohs(icmp->un.echo.id) != data->pid)
+	if (r != expected_size && ft_ntohs(icmp->un.echo.id) != data->pid)
 		return (-1);
 	if (r != expected_size && !ft_strequ(msg, "coucou"))
 		return (-1);
@@ -92,14 +85,14 @@ int send_echo_request(t_data *data)
 	char *msg;
 	struct timeval *tv;
 
-	bzero(dgram, sizeof(dgram));
+	ft_bzero(dgram, sizeof(dgram));
 	icmp = (struct icmphdr *)dgram;
 	msg = dgram + sizeof(struct icmphdr) + sizeof(struct timeval);
 	tv = (struct timeval*)(dgram + sizeof(struct icmphdr));
 	icmp->type = ICMP_ECHO;
 	icmp->code = 0;
-	icmp->un.echo.id = htons(data->pid);
-	icmp->un.echo.sequence = htons(data->seq);
+	icmp->un.echo.id = ft_htons(data->pid);
+	icmp->un.echo.sequence = ft_htons(data->seq);
 	data->seq++;
 	strcpy(msg, "coucou");
 	if (gettimeofday(tv, NULL) == -1)

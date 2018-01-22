@@ -27,8 +27,8 @@ void print_ok_msg(t_data *data, char buffer[200], struct timeval recvtime)
 		inet_ntop(AF_INET6, addr, dst, sizeof(dst));
 	}
 	diff = ((recvtime.tv_sec * 1000  + recvtime.tv_usec / 1000.0) - (tv->tv_sec * 1000  + tv->tv_usec / 1000.0));
-	printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms\n", 64, dst, ntohs(icmp->un.echo.sequence), ip->ttl, diff);
-	data->lst = add_pckt(data->lst, create_pckt(ntohs(icmp->un.echo.sequence), diff));
+	printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%.1f ms\n", 64, dst, ft_ntohs(icmp->un.echo.sequence), ip->ttl, diff);
+	data->lst = add_pckt(data->lst, create_pckt(ft_ntohs(icmp->un.echo.sequence), diff));
 	data->nreceived++;
 }
 

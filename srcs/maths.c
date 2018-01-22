@@ -72,3 +72,18 @@ float calc_mdev(t_pckt *lst)
 	}
 	return (tot / count);
 }
+
+uint16_t invert_s_byte_order(uint16_t nbr)
+{
+	return ((nbr << 8) | (nbr >> 8));
+}
+
+uint16_t ft_ntohs(uint16_t netshort)
+{
+	return (invert_s_byte_order(netshort));
+}
+
+uint16_t ft_htons(uint16_t hostshort)
+{
+	return (invert_s_byte_order(hostshort));
+}
